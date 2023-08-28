@@ -124,9 +124,6 @@ def find_sim_song(df, sim, mat, weight_mat_cv, weight_mat_tf, songs, emb_mode, g
         simi = simi + sim_array
     
     simi /= len(songs)
-    
-    # 유사도 값을 0~1 사이로 Scaling
-    simi *= (simi - min(simi)) / (max(simi) - min(simi))
 
     temp = df.copy()
     temp['similarity'] = simi.reshape(-1, 1)
@@ -328,10 +325,46 @@ def song_recommend2(tags, songs, song_df, sim, tag_imb_mode, genre_imb_mode, lik
     
     return tag_simi_mean.iloc[:10]
 
-def process_fuc(test_my_songs, test_my_tags, song_tag_appended, tag_imb, genre_imb, like, mode, w2v, weight_mat_cv, weight_mat_tf, tag_weights):
+def process_fuc_cos(test_my_songs, test_my_tags, song_tag_appended, tag_imb, genre_imb, like, mode, w2v, weight_mat_cv, weight_mat_tf, tag_weights):
     pred_list = []
     for plist, tags in zip(test_my_songs, test_my_tags):
         recommended = song_recommend(tags, plist, song_tag_appended, 'cos', tag_imb, genre_imb, like, mode, w2v,
+                                     weight_mat_cv, weight_mat_tf, tag_weights)
+        pred_list.append(recommended['song_id'].tolist())
+
+    map_k = get_map_k(test_my_songs, pred_list, 10)
+    ndcg = ndcg_at_k(test_my_songs, pred_list, 10)
+    res = f"Tag : {tag_imb}" + f", Genre : {genre_imb}" + f", Like : {like}" + ", Mode : " + mode + "\n" + "MAP@K (K=10): {:.3f}".format(map_k) + "\n" + "nDCG: {:.3f}".format(ndcg)
+    return res
+
+def process_fuc_pea(test_my_songs, test_my_tags, song_tag_appended, tag_imb, genre_imb, like, mode, w2v, weight_mat_cv, weight_mat_tf, tag_weights):
+    pred_list = []
+    for plist, tags in zip(test_my_songs, test_my_tags):
+        recommended = song_recommend(tags, plist, song_tag_appended, 'pea', tag_imb, genre_imb, like, mode, w2v,
+                                     weight_mat_cv, weight_mat_tf, tag_weights)
+        pred_list.append(recommended['song_id'].tolist())
+
+    map_k = get_map_k(test_my_songs, pred_list, 10)
+    ndcg = ndcg_at_k(test_my_songs, pred_list, 10)
+    res = f"Tag : {tag_imb}" + f", Genre : {genre_imb}" + f", Like : {like}" + ", Mode : " + mode + "\n" + "MAP@K (K=10): {:.3f}".format(map_k) + "\n" + "nDCG: {:.3f}".format(ndcg)
+    return res
+
+def process_fuc_cos2(test_my_songs, test_my_tags, song_tag_appended, tag_imb, genre_imb, like, mode, w2v, weight_mat_cv, weight_mat_tf, tag_weights):
+    pred_list = []
+    for plist, tags in zip(test_my_songs, test_my_tags):
+        recommended = song_recommend2(tags, plist, song_tag_appended, 'cos', tag_imb, genre_imb, like, mode, w2v,
+                                     weight_mat_cv, weight_mat_tf, tag_weights)
+        pred_list.append(recommended['song_id'].tolist())
+
+    map_k = get_map_k(test_my_songs, pred_list, 10)
+    ndcg = ndcg_at_k(test_my_songs, pred_list, 10)
+    res = f"Tag : {tag_imb}" + f", Genre : {genre_imb}" + f", Like : {like}" + ", Mode : " + mode + "\n" + "MAP@K (K=10): {:.3f}".format(map_k) + "\n" + "nDCG: {:.3f}".format(ndcg)
+    return res
+
+def process_fuc_pea2(test_my_songs, test_my_tags, song_tag_appended, tag_imb, genre_imb, like, mode, w2v, weight_mat_cv, weight_mat_tf, tag_weights):
+    pred_list = []
+    for plist, tags in zip(test_my_songs, test_my_tags):
+        recommended = song_recommend2(tags, plist, song_tag_appended, 'pea', tag_imb, genre_imb, like, mode, w2v,
                                      weight_mat_cv, weight_mat_tf, tag_weights)
         pred_list.append(recommended['song_id'].tolist())
 
